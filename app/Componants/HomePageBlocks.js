@@ -167,14 +167,15 @@ export default function HomePageBlocks() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: idx * 0.1 }}
-          className="relative h-[45vh] flex justify-center"
+          className={`relative flex justify-center w-full
+            ${isFirstBanner ? "h-[60vh] sm:h-[60vh] md:h-[70vh] lg:h-[80vh]" : "h-[30vh] sm:h-[40vh] md:h-[55vh] lg:h-[60vh]"}
+          `}
         >
           <Image
             src={getImageUrl(banner.image)}
             alt={banner.title || ""}
-            width={isFirstBanner ? 1920 : 1536} // 100vw للأول، 80vw للباقي
-            height={400}
-          
+            fill
+            className={isFirstBanner ? "object-fit-fill" : "object-contain"}
             unoptimized
             priority={isFirstBanner}
           />
@@ -183,6 +184,7 @@ export default function HomePageBlocks() {
     })}
   </div>
 )}
+
 
 
 {/* 🟡 BRANDS */}
