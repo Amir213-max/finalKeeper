@@ -167,10 +167,10 @@ export default function ApparelClientPage({ products, brands, attributeValues })
 
                   <div className="text-center">
                     <div className="line-through text-gray-500 text-sm">
-                      SAR ({product.list_price_amount * 4.6}.toFixed(2))
+                      SAR {(product.list_price_amount  * 4.6).toFixed(2)}
                     </div>
                     <span className="text-lg font-bold text-neutral-900">
-                      SAR {product.price_range_exact_amount *4.6}
+                      SAR {(product.price_range_exact_amount  * 4.6).toFixed(2)}
                     </span>
                   </div>
                 </Link>

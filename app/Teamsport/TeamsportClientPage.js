@@ -173,8 +173,8 @@ export default function TeamsportClientPage({ products, brands, attributeValues 
                        SAR {(product.list_price_amount * 4.6).toFixed(2)}
                     </div>
                     <span className="text-lg font-bold text-neutral-900">
-                      {product.list_price_currency}{" "}
-                      {product.price_range_exact_amount}
+                      SAR
+                      {(product.price_range_exact_amount * 4.6).toFixed(2)}
                     </span>
                   </div>
                 </Link>

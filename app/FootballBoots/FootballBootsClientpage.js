@@ -182,6 +182,7 @@ export default function FootballClientPage({ products, brands, attributeValues }
             }}
           />
         </div>
+        
         {/* Products Area */}
         <div className="md:col-span-4 p-4 bg-white">
           <h1 className="text-4xl text-[#1f2323] p-2">
@@ -253,7 +254,7 @@ export default function FootballClientPage({ products, brands, attributeValues }
 
                     </div>
                     <span className="text-lg font-bold text-neutral-900">
-                      SAR {(product.list_price_amount * 4.6).toFixed(2)}
+                    SAR {(product.price_range_exact_amount  * 4.6).toFixed(2)}
 
                     </span>
                   </div>

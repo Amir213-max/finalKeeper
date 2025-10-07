@@ -9,6 +9,7 @@ import { Splide, SplideSlide } from "@splidejs/react-splide";
 import "@splidejs/react-splide/css";
 import { useTranslation } from "../contexts/TranslationContext";
 import { motion } from "framer-motion";
+import MultiSlider_6 from "./Slider_6";
 
 export default function HomePageBlocks() {
   const { lang } = useTranslation();
@@ -155,47 +156,94 @@ export default function HomePageBlocks() {
                 ))}
               </div>
             )}
-
-            {/* 🟠 BANNERS */}
 {block.type === "banners" && block.content?.banners?.length > 0 && (
   <div className="flex justify-center flex-col sm:flex-row gap-4 flex-wrap px-1 md:px-2 lg:px-1">
-  {block.content.banners.map((banner, idx) => {
-    const isFirstBanner = !firstBannerRenderedRef.current;
-    if (isFirstBanner) firstBannerRenderedRef.current = true;
+    {block.content.banners.map((banner, idx) => {
+      const isFirstBanner = idx === 0; // أول بانر في المصفوفة
 
-    return (
-      <motion.div
-        key={banner.id || idx}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: idx * 0.1 }}
-        className={`relative h-[45vh] flex justify-center flex-1 w-full sm:w-auto`}
-      >
-        {isFirstBanner ? (
+      return (
+        <motion.div
+          key={banner.id || idx}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: idx * 0.1 }}
+          className="relative h-[45vh] flex justify-center"
+        >
           <Image
             src={getImageUrl(banner.image)}
             alt={banner.title || ""}
-            fill
-            className="object-fit-fill"
-            unoptimized
-            priority
-          />
-        ) : (
-          <Image
-            src={getImageUrl(banner.image)}
-            alt={banner.title || ""}
-            width={600}
+            width={isFirstBanner ? 1920 : 1536} // 100vw للأول، 80vw للباقي
             height={400}
-            className="w-[100vw] object-fit-contain h-full"
+          
             unoptimized
+            priority={isFirstBanner}
           />
-        )}
-      </motion.div>
-    );
-  })}
-</div>
-
+        </motion.div>
+      );
+    })}
+  </div>
 )}
+
+
+{/* 🟡 BRANDS */}
+{block.type === "brands" && block.content?.images?.length > 0 && (
+  <div className="px-4 py-6 bg-gray-900 text-white rounded-lg">
+    <p className="text-lg font-medium mb-4 text-center">
+      {block.title || "Featured Brands"}
+    </p>
+    <Splide
+      options={{
+        type: "loop",
+        perPage: block.content?.per_row || 5,
+        gap: "1rem",
+        autoplay: true,
+        pauseOnHover: true,
+        arrows: true,
+        pagination: false,
+        direction: lang === "ar" ? "rtl" : "ltr",
+        breakpoints: {
+          1280: { perPage: 4 },
+          1024: { perPage: 3 },
+          768: { perPage: 2 },
+          640: { perPage: 1 },
+        },
+      }}
+    >
+      {block.content.images.map((img, idx) => (
+        <SplideSlide key={idx}>
+          <div className="flex items-center justify-center h-32 bg-black rounded-lg p-3">
+            <Image
+              src={typeof img === "string" ? img : img.url || ""}
+              alt={img.title || `Brand ${idx + 1}`}
+              fill
+              className="object-contain"
+              unoptimized
+            />
+
+          </div>
+          <p className="text-lg font-medium">
+      {block.title || "Featured Brands"}
+    </p>
+        </SplideSlide>
+      ))}
+    </Splide>
+  </div>
+)}
+
+
+
+
+
+{/* 🟡 TEXT */}
+{block.type === "text" && block.content?.content && (
+  <div className="px-4 py-6  text-white text-center rounded-lg max-w-5xl mx-auto">
+    {/* <h2 className="text-2xl font-bold mb-4">{block.title}</h2> */}
+    <p className="text-sm sm:text-base whitespace-pre-line">{block.content.content}</p>
+  </div>
+)}
+
+
+
 
 
             {/* 🟡 PRODUCTS */}
@@ -321,6 +369,7 @@ export default function HomePageBlocks() {
           </div>
         </motion.div>
       ))}
+      <MultiSlider_6 />
     </div>
   );
 }

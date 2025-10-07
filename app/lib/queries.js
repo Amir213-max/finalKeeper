@@ -573,7 +573,7 @@ query {
   activeHomepageBlocks {
     id
     type
-
+    sort_order
     button_style
     button_text
     button_url

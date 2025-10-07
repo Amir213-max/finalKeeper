@@ -90,20 +90,6 @@ export default function GoalKeeperClientPage({ products, brands, attributeValues
 
   return (
     <div className="bg-[#373e3e]">
-       <div className="block lg:hidden bg-black px-2 py-2 sticky top-0 z-20">
-        <Sidebar
-          categories={categoriesWithProducts}
-          onSelectCategory={(catId) => {
-            if (catId === selectedCategoryId) {
-              setSelectedCategoryId(null);
-              setSelectedCategoryName(null);
-            } else {
-              setSelectedCategoryId(catId);
-            }
-          }}
-        />
-      </div>
-
       <div className="grid pt-1 grid-cols-1 lg:grid-cols-5">
         {/* ✅ Sidebar في الجنب للشاشات الكبيرة */}
         <div className="hidden lg:block lg:col-span-1 bg-black h-auto">
@@ -119,12 +105,30 @@ export default function GoalKeeperClientPage({ products, brands, attributeValues
             }}
           />
         </div>
+
         {/* Products Area */}
         <div className="md:col-span-4 p-4 bg-white">
+          {/* Title */}
           <h1 className="text-4xl text-[#1f2323] p-2">
             {selectedCategoryName || t("Goalkeeper Gloves")}
           </h1>
 
+          {/* Sidebar للشاشات الصغيرة تحت العنوان */}
+          <div className="block lg:hidden bg-black p-2 mb-4 rounded">
+            <Sidebar
+              categories={categoriesWithProducts}
+              onSelectCategory={(catId) => {
+                if (catId === selectedCategoryId) {
+                  setSelectedCategoryId(null);
+                  setSelectedCategoryName(null);
+                } else {
+                  setSelectedCategoryId(catId);
+                }
+              }}
+            />
+          </div>
+
+          {/* Brands Slider */}
           <BrandsSlider
             brands={brands}
             selectedBrand={selectedBrand}
@@ -133,6 +137,7 @@ export default function GoalKeeperClientPage({ products, brands, attributeValues
             }
           />
 
+          {/* Filters */}
           <div className="flex mb-4 gap-3 flex-wrap">
             <FilterDropdown
               attributeValues={attributeValues}
@@ -167,11 +172,10 @@ export default function GoalKeeperClientPage({ products, brands, attributeValues
 
                   <div className="text-center">
                     <div className="line-through text-gray-500 text-sm">
-                       SAR {(product.list_price_amount * 4.6).toFixed(2)}
+                      SAR {(product.list_price_amount * 4.6).toFixed(2)}
                     </div>
                     <span className="text-lg font-bold text-neutral-900">
-                      SAR {(product.list_price_amount * 4.6).toFixed(2)}
-
+                      SAR {(product.price_range_exact_amount * 4.6).toFixed(2)}
                     </span>
                   </div>
                 </Link>
