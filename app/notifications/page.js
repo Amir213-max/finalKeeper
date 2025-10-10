@@ -4,25 +4,49 @@ import { useEffect, useState } from 'react';
 import { graphqlClient } from '../lib/graphqlClient';
 import { UNREAD_NOTIFICATIONS_QUERY } from '../lib/queries';
 import Link from 'next/link';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
+    if (!user?.id) return;
+
     const fetchNotifications = async () => {
       try {
+        setLoading(true);
         const { unreadNotifications } = await graphqlClient.request(
           UNREAD_NOTIFICATIONS_QUERY,
-          { user_id: "1" } // غيّر هذا حسب ID المستخدم الحالي
+          { user_id: user.id }
         );
-        setNotifications(unreadNotifications);
+        setNotifications(unreadNotifications || []);
       } catch (error) {
-        console.error(error);
+        console.error('Error fetching notifications:', error);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchNotifications();
-  }, []);
+  }, [user]);
+
+  if (!user?.id) {
+    return (
+      <div className="flex justify-center items-center h-[60vh]">
+        <p className="text-gray-500">Please log in to view your notifications.</p>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-[60vh]">
+        <p className="text-gray-500">Loading notifications...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -35,21 +59,23 @@ export default function NotificationsPage() {
           {notifications.map((notif) => (
             <Link
               key={notif.id}
-              href={`/notifications/${notif.id}`} // رابط لتفاصيل الإشعار
-              className={`block p-4 border rounded-lg shadow hover:shadow-lg transition-all duration-200
-                ${!notif.read_at ? 'bg-yellow-50 border-yellow-300' : 'bg-white border-gray-200'}
-              `}
+              href={`/notifications/${notif.id}`}
+              className={`block p-4 border rounded-lg shadow hover:shadow-lg transition-all duration-200 ${
+                !notif.read_at
+                  ? 'bg-yellow-50 border-yellow-300'
+                  : 'bg-white border-gray-200'
+              }`}
             >
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="text-black font-semibold text-lg">{notif.type}</p>
-                  <p className="text-gray-600 text-sm">
-                    {notif.notifiable_type} - ID: {notif.notifiable_id}
+                  <p className="text-black font-semibold text-lg">
+                    {notif.message || notif.type}
                   </p>
                   <p className="text-gray-400 text-xs mt-1">
                     {new Date(notif.created_at).toLocaleString()}
                   </p>
                 </div>
+
                 {!notif.read_at && (
                   <span className="ml-2 w-3 h-3 bg-red-500 rounded-full mt-1 animate-pulse" />
                 )}

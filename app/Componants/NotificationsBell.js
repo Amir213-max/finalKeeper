@@ -5,31 +5,38 @@ import { Bell } from "lucide-react";
 import { graphqlClient } from "../lib/graphqlClient";
 import { UNREAD_NOTIFICATIONS_QUERY } from "../lib/queries";
 import Link from "next/link";
+import { useAuth } from "../contexts/AuthContext";
 
-export default function NavbarNotifications({ userId }) {
+export default function NavbarNotifications() {
   const [notifications, setNotifications] = useState([]);
   const [open, setOpen] = useState(false);
+  const { token, user } = useAuth(); // ✅ جلب التوكن و الـ user
 
   useEffect(() => {
+    if (!token || !user?.id) return; // ⛔ مش نعمل fetch إلا لو فيه توكن و ID
+
     const fetchNotifications = async () => {
       try {
         const { unreadNotifications } = await graphqlClient.request(
           UNREAD_NOTIFICATIONS_QUERY,
-          { user_id: userId }
+          { user_id: user.id }, // ✅ بعته للـ query
+          {
+            Authorization: `Bearer ${token}`,
+          }
         );
-        setNotifications(unreadNotifications);
+        setNotifications(unreadNotifications || []);
       } catch (error) {
-        console.error(error);
+        console.error("Error fetching notifications:", error);
       }
     };
+
     fetchNotifications();
-  }, [userId]);
+  }, [token, user]);
 
   const unreadCount = notifications.filter((n) => !n.read_at).length;
 
   return (
     <div className="relative">
-      {/* Bell Button */}
       <button
         onClick={() => setOpen(true)}
         className="relative p-2 rounded-full hover:bg-amber-400 transition-colors"
@@ -42,18 +49,14 @@ export default function NavbarNotifications({ userId }) {
         )}
       </button>
 
-      {/* Dropdown */}
       {open && (
         <div className="fixed inset-0 z-[9999] flex items-start justify-center sm:justify-end">
-          {/* Overlay (dark & block actions) */}
           <div
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setOpen(false)}
           ></div>
 
-          {/* Dropdown box */}
           <div className="relative mt-20 w-[90vw] max-w-xs sm:max-w-sm bg-white shadow-2xl rounded-xl overflow-hidden border border-gray-200 animate-fadeIn">
-            {/* Header */}
             <div className="p-3 border-b flex justify-between items-center bg-gradient-to-r from-amber-100 to-amber-50">
               <span className="font-semibold text-gray-800 text-sm">
                 Notifications
@@ -67,7 +70,6 @@ export default function NavbarNotifications({ userId }) {
               </Link>
             </div>
 
-            {/* Notifications List */}
             <div className="max-h-80 overflow-y-auto p-2 space-y-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
               {notifications.length === 0 ? (
                 <p className="text-gray-500 text-center p-4">
@@ -78,7 +80,7 @@ export default function NavbarNotifications({ userId }) {
                   <Link
                     key={notif.id}
                     href={`/notifications/${notif.id}`}
-                    onClick={() => setOpen(false)} // يقفل بعد الضغط على الإشعار
+                    onClick={() => setOpen(false)}
                     className={`block p-3 rounded-lg transition-all duration-200 ${
                       !notif.read_at
                         ? "border-l-4 border-red-500 bg-red-50 hover:bg-red-100"

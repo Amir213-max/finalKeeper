@@ -39,6 +39,7 @@ export default function RootLayout({ children  }) {
      <body>
 
    <TranslationProvider>
+<AuthProvider>
    <Toaster position="top-center" />
    
      <CartProvider>
@@ -46,9 +47,7 @@ export default function RootLayout({ children  }) {
 
 <ChatProvider>
   <CartProvider>
-<AuthProvider>
 {children}
-</AuthProvider>
        
         <RegisterSWClient />
         <Toaster position="top-right"    toastOptions={{ duration: 3000 }}  />
@@ -59,6 +58,7 @@ export default function RootLayout({ children  }) {
         <Footer />
      </CartProvider>
        
+</AuthProvider>
     </TranslationProvider>
       </body>
       </html>
