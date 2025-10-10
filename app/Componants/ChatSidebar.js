@@ -10,14 +10,15 @@ export default function ChatSidebar() {
   return (
     <>
      
-      {!isChatOpen && (
-        <button
-          onClick={() => openChat()}
-          className="fixed bottom-4 cursor-pointer  right-4 bg-yellow-400 text-black p-4 rounded-full shadow-lg z-50 hover:scale-125 duration-100"
-        >
-          <FaCommentDots size={24} className="text-white" />
-        </button>
-      )}
+     {!isChatOpen && (
+  <button
+    onClick={() => openChat()}
+    className="hidden lg:block fixed bottom-4 cursor-pointer right-4 bg-yellow-400 text-black p-4 rounded-full shadow-lg z-50 hover:scale-125 duration-100"
+  >
+    <FaCommentDots size={24} className="text-white" />
+  </button>
+)}
+
 
     
       {isChatOpen && (

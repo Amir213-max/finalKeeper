@@ -12,6 +12,7 @@ import "./globals.css";
 import RegisterSWClient from "./Componants/RegisterSWClient";
 import { Providers } from "./provider";
 import { AuthProvider } from "./contexts/AuthContext";
+import Sidebar from "./Componants/sidebar";
 
 
 const geistSans = Geist({
@@ -43,9 +44,13 @@ export default function RootLayout({ children  }) {
    <Toaster position="top-center" />
    
      <CartProvider>
-     <NavbarWithLinks />
+     
 
 <ChatProvider>
+  
+     <NavbarWithLinks />
+
+
   <CartProvider>
 {children}
        

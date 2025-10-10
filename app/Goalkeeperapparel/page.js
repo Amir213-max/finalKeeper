@@ -5,7 +5,7 @@ import ApparelClientPage from "./ApparelClientpage";
 
 
 
-const FOOTBALL_BOOTS_CATEGORY_ID = "110"; 
+const FOOTBALL_BOOTS_CATEGORY_ID = "113"; 
 // تقدر تعدل الـ ID أو تخليها Array وتعرض أكتر من SubCategory لو حابب
 
 const fetchProductsByCategory = async () => {

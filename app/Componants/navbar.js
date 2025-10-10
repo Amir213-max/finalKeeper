@@ -138,7 +138,7 @@ export default function NavbarWithLinks({ onSelectCategory }) {
           </li>
           <li>
             <Link
-              href="/Goalkeeper apparel"
+              href="/Goalkeeperapparel"
               className="hover:border-b-2 pb-1 border-white"
             >
               {t('Goalkeeper Apparel')}
@@ -146,7 +146,7 @@ export default function NavbarWithLinks({ onSelectCategory }) {
           </li>
           <li>
             <Link
-              href="/Goalkeeper equipment"
+              href="/Goalkeeperequipment"
               className="hover:border-b-2 pb-1 border-white"
             >
               {t('Goalkeeper Equipment')}
