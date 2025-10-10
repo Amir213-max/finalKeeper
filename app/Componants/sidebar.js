@@ -1,83 +1,210 @@
-// Sidebar.js
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Splide, SplideSlide } from "@splidejs/react-splide";
-import "@splidejs/react-splide/css";
-import clsx from "clsx";
-import { Tag } from "lucide-react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { FaShoppingCart, FaUser } from 'react-icons/fa';
+import { ChevronDown, ChevronRight, X } from "lucide-react";
+import { graphqlClient } from "../lib/graphqlClient";
+import { Root_CATEGORIES } from "../lib/queries";
+import { motion, AnimatePresence } from "framer-motion";
+import CartSidebar from "./CartSidebar";
+import Image from "next/image";
 
-export default function Sidebar({ categories, onSelectCategory }) {
-  const [activeCategory, setActiveCategory] = useState(null);
+export default function Sidebar({ isOpen, setIsOpen, onSelectCategory }) {
+  const [categories, setCategories] = useState([]);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [openParentId, setOpenParentId] = useState(null);
+  const router = useRouter();
 
-  const parseName = (name) => {
-    try {
-      const parsed = JSON.parse(name);
-      return parsed.en || parsed.ar || name;
-    } catch {
-      return name;
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await graphqlClient.request(Root_CATEGORIES);
+        setCategories(data?.rootCategories || []);
+      } catch (error) {
+        console.error("❌ Error fetching categories:", error);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  const parentCategories = categories
+    .filter((cat) => cat.parent && cat.parent.name)
+    .reduce((acc, curr) => {
+      const exists = acc.find((p) => p.parent.id === curr.parent.id);
+      if (!exists) acc.push(curr);
+      return acc;
+    }, []);
+
+  const handleParentClick = (parentId, parentName) => {
+    if (openParentId === parentId) {
+      setOpenParentId(null);
+    } else {
+      setOpenParentId(parentId);
+      router.push(`/${parentName.replace(/\s+/g, "")}`);
     }
-  };
-
-  const handleSelect = (id) => {
-    setActiveCategory(id);
-    onSelectCategory(id);
   };
 
   return (
     <>
-      {/* ✅ Vertical Sidebar للشاشات الكبيرة */}
-      <ul className="hidden lg:flex flex-col px-3 py-4 space-y-3 bg-black rounded-xl shadow-sm">
-        {categories.map((root) => (
-          <li key={root.id}>
-            <div
-              onClick={() => handleSelect(root.id)}
-              className={clsx(
-                "flex items-center bg-neutral-900 text-white gap-3 p-4 hover:text-black rounded-lg cursor-pointer transition-all duration-300",
-                activeCategory === root.id
-                  ? "bg-gradient-to-r from-yellow-300 to-amber-200 text-black font-bold shadow-md"
-                  : "bg-gray-50 hover:bg-yellow-50 text-black"
-              )}
-            >
-              <Tag className="w-5 h-5 opacity-60" />
-              <span>{parseName(root.name)}</span>
-            </div>
-          </li>
-        ))}
-      </ul>
+      {/* Sidebar للشاشات الكبيرة */}
+      <aside className="hidden lg:block bg-black text-white w-100 min-h-screen py-4 px-3 font-sans">
+        <SidebarContent
+          parentCategories={parentCategories}
+          categories={categories}
+          openParentId={openParentId}
+          handleParentClick={handleParentClick}
+          onSelectCategory={onSelectCategory}
+          setIsOpen={setIsOpen}
+        />
+      </aside>
 
-      {/* ✅ Horizontal Slider للشاشات الصغيرة والمتوسطة */}
-      <div className="block lg:hidden px-2 py-4 bg-black rounded-xl">
-        <Splide
-          options={{
-            type: "slide",
-            perPage: 3,
-            perMove: 1,
-            arrows: false,
-            pagination: false,
-            gap: "0.75rem",
-            drag: "free",
-            autoWidth: true,
-          }}
-          className="!overflow-hidden"
-        >
-          {categories.map((cat) => (
-            <SplideSlide key={cat.id} className="flex justify-center">
-              <div
-                onClick={() => handleSelect(cat.id)}
-                className={clsx(
-                  "px-5 py-3 rounded-xl bg-neutral-900 cursor-pointer transition-all duration-300 ease-in-out text-center shadow-sm whitespace-nowrap",
-                  activeCategory === cat.id
-                    ? "bg-gradient-to-br from-neutal-200 to-amber-100 text-white font-semibold shadow-md scale-105"
-                    : "bg-neutral-900 text-white hover:bg-yellow-50"
-                )}
-              >
-                {parseName(cat.name)}
-              </div>
-            </SplideSlide>
-          ))}
-        </Splide>
-      </div>
+      {/* Drawer للشاشات الصغيرة والمتوسطة مع أنيميشن */}
+     {/* Drawer للشاشات الصغيرة والمتوسطة مع أنيميشن */}
+<AnimatePresence>
+  {isOpen && (
+    <>
+      {/* Backdrop */}
+      <motion.div
+        className="fixed inset-0 bg-black z-40 lg:hidden"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.8 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.3 }}
+        onClick={() => setIsOpen(false)}
+      />
+
+      {/* Drawer */}
+      <motion.div
+  className="fixed top-0 left-0 h-full w-64 bg-black text-white z-50 shadow-xl py-4 px-3 font-sans overflow-y-auto lg:hidden flex flex-col"
+  initial={{ x: '-100%' }}
+  animate={{ x: 0 }}
+  exit={{ x: '-100%' }}
+  transition={{ type: 'tween', duration: 0.4 }}
+>
+  {/* زر الإغلاق */}
+  <div className="flex justify-between items-center mb-4">
+    <h2 className="text-lg font-semibold">Menu</h2>
+    <button
+      onClick={() => setIsOpen(false)}
+      className="text-white hover:text-amber-400"
+    >
+      <X size={22} />
+    </button>
+  </div>
+
+  {/* قائمة الأقسام */}
+  <SidebarContent
+    parentCategories={parentCategories}
+    categories={categories}
+    openParentId={openParentId}
+    handleParentClick={handleParentClick}
+    onSelectCategory={(id) => {
+      onSelectCategory?.(id);
+      setIsOpen(false);
+    }}
+  />
+
+  {/* أيقونات أسفل الستارة */}
+  <div className="mt-auto pt-4 border-t border-neutral-700 flex items-center  px-3">
+  {/* Logo */}
+
+  {/* Icons */}
+  <div className="flex items-center gap-6"> 
+  <Link href="/" >
+    <Image
+      src="https://static-assets.keepersport.net/dist/82d4dde2fe42e8e4fbfc.svg"
+      alt="LOGO"
+      width={30} // حجم ثابت للعرض
+      height={30} // حجم ثابت للارتفاع
+      className="object-contain"
+      priority
+    />
+  </Link>
+
+    <button
+      onClick={() => setCartOpen(true)}
+      className="text-white hover:text-amber-400 transition-colors duration-200"
+    >
+      <FaShoppingCart size={20} />
+    </button>
+
+    <Link
+      href="/login"
+      className="text-white hover:text-red-600 transition-colors duration-200"
+    >
+      <FaUser size={20} />
+    </Link>
+  </div>
+</div>
+
+</motion.div>
+
     </>
+  )}
+</AnimatePresence>
+<CartSidebar isOpen={cartOpen} onClose={() => setCartOpen(false)} />
+    </>
+  );
+}
+
+// محتوى القائمة
+function SidebarContent({
+  parentCategories,
+  categories,
+  openParentId,
+  handleParentClick,
+  onSelectCategory,
+  setIsOpen ,
+}) {
+  return (
+    <ul className="space-y-1">
+      {parentCategories.map((item) => {
+        const parent = item.parent;
+        const subCategories = categories.filter(
+          (sub) => sub.parent?.id === parent.id
+        );
+        const isOpen = openParentId === parent.id;
+
+        return (
+          <li key={parent.id} className="border-b border-neutral-700 pb-1">
+            <div
+              className="flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-neutral-700 transition-all"
+              onClick={() => handleParentClick(parent.id, parent.name)}
+            >
+              <span className="text-sm font-medium hover:text-amber-400">
+                {parent.name}
+              </span>
+              {subCategories.length > 0 &&
+                (isOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />)}
+            </div>
+
+            {isOpen && subCategories.length > 0 && (
+              <ul className="ml-4 mt-1 border-l border-neutral-700 space-y-1">
+               {subCategories.map((sub) => (
+  <li
+    key={sub.id}
+    className="px-3 py-1 text-sm text-neutral-300 cursor-pointer hover:bg-neutral-800 hover:text-white transition-all"
+    onClick={() => {
+      // أولًا نحدث الفلترة
+      onSelectCategory?.(sub.id);
+
+      // ثم نقفل الستارة بعد قليل حتى يلحق React يحدث الـ state
+      setTimeout(() => {
+        setIsOpen?.(false);
+      }, 50); // 50ms تكفي
+    }}
+  >
+    {sub.name}
+  </li>
+))}
+              </ul>
+            )}
+          </li>
+        );
+      })}
+    </ul>
+    
   );
 }

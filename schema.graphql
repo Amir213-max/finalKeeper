@@ -81,7 +81,7 @@ type HomePageBlockContent {
     show_descriptions: Boolean
     
     # Brands content
-    brand_ids: [Int!]
+    brand_ids: [String!]!
     show_names: Boolean
     
     # Text content
@@ -511,6 +511,54 @@ type Setting {
     updated_at: String!
 }
 
+type Page {
+    id: ID!
+    name: String! @field(resolver: "App\\GraphQL\\Resolvers\\TranslatableFieldsResolver@resolveGenericTranslatedField")
+    slug: String!
+    url: String
+    description: String! @field(resolver: "App\\GraphQL\\Resolvers\\TranslatableFieldsResolver@resolveGenericTranslatedField")
+    published: Boolean!
+    meta_title: String @field(resolver: "App\\GraphQL\\Resolvers\\TranslatableFieldsResolver@resolveGenericTranslatedField")
+    meta_description: String @field(resolver: "App\\GraphQL\\Resolvers\\TranslatableFieldsResolver@resolveGenericTranslatedField")
+    created_at: String!
+    updated_at: String!
+    
+    # Language-specific translated fields
+    name_en: String @field(resolver: "App\\GraphQL\\Resolvers\\TranslatableFieldsResolver@resolveTranslatedField")
+    name_ar: String @field(resolver: "App\\GraphQL\\Resolvers\\TranslatableFieldsResolver@resolveTranslatedField")
+    description_en: String @field(resolver: "App\\GraphQL\\Resolvers\\TranslatableFieldsResolver@resolveTranslatedField")
+    description_ar: String @field(resolver: "App\\GraphQL\\Resolvers\\TranslatableFieldsResolver@resolveTranslatedField")
+    meta_title_en: String @field(resolver: "App\\GraphQL\\Resolvers\\TranslatableFieldsResolver@resolveTranslatedField")
+    meta_title_ar: String @field(resolver: "App\\GraphQL\\Resolvers\\TranslatableFieldsResolver@resolveTranslatedField")
+    meta_description_en: String @field(resolver: "App\\GraphQL\\Resolvers\\TranslatableFieldsResolver@resolveTranslatedField")
+    meta_description_ar: String @field(resolver: "App\\GraphQL\\Resolvers\\TranslatableFieldsResolver@resolveTranslatedField")
+    
+    # Computed fields
+    full_url: String! @field(resolver: "App\\GraphQL\\Resolvers\\PageResolver@resolveFullUrl")
+    excerpt: String! @field(resolver: "App\\GraphQL\\Resolvers\\PageResolver@resolveExcerpt")
+    word_count: Int! @field(resolver: "App\\GraphQL\\Resolvers\\PageResolver@resolveWordCount")
+    reading_time: Int! @field(resolver: "App\\GraphQL\\Resolvers\\PageResolver@resolveReadingTime")
+}
+
+type PagePaginatedResult {
+    data: [Page!]!
+    pagination: PaginationInfo!
+}
+
+type PageFiltersInfo {
+    applied_filters: String!
+    total_filtered: Int!
+    published_count: Int!
+    unpublished_count: Int!
+}
+
+type PageSearchResult {
+    pages: [Page!]!
+    total_results: Int!
+    search_query: String!
+    search_time: Float!
+}
+
 type Notification {
     id: ID!
     type: String!
@@ -745,6 +793,10 @@ type Brand {
      slug: String!
   description: String
      image: String
+     logo: String
+     logo_url: String @field(resolver: "App\\GraphQL\\Resolvers\\BrandResolver@resolveLogoUrl")
+     shoe_size_region: String
+     
      is_active: Boolean!
      products: [Product!]! @hasMany
      created_at: String!
@@ -766,6 +818,8 @@ type Brand {
      slug: String!
   description: String
      image: String
+     logo: String
+     shoe_size_region: String
      is_active: Boolean!
  }
  
@@ -926,14 +980,25 @@ type Brand {
      pagination: PaginationInfo!
  }
 
- type PaginationInfo {
-     current_page: Int!
-     per_page: Int!
-     total: Int!
-     total_pages: Int!
-     has_next_page: Boolean!
-     has_previous_page: Boolean!
- }
+type PaginationInfo {
+    current_page: Int!
+    per_page: Int!
+    total: Int!
+    total_pages: Int!
+    has_next_page: Boolean!
+    has_previous_page: Boolean!
+}
+
+type PaginatorInfo {
+    count: Int!
+    currentPage: Int!
+    firstItem: Int
+    hasMorePages: Boolean!
+    lastItem: Int
+    lastPage: Int!
+    perPage: Int!
+    total: Int!
+}
 
  type ProductAdvancedResult {
      data: [Product!]!
@@ -1231,6 +1296,45 @@ input CreateOrderFromCartInput {
      notification: NotificationInput!
  }
 
+ input PageInput {
+     name: String!
+     slug: String
+     url: String
+     description: String!
+     published: Boolean
+     meta_title: String
+     meta_description: String
+ }
+
+ input UpdatePageInput {
+     name: String
+     slug: String
+     url: String
+     description: String
+     published: Boolean
+     meta_title: String
+     meta_description: String
+ }
+
+ input PageFiltersInput {
+     published: Boolean
+     search: String
+     created_from: String
+     created_to: String
+     updated_from: String
+     updated_to: String
+     has_url: Boolean
+     has_meta_title: Boolean
+     has_meta_description: Boolean
+ }
+
+ input PageSearchInput {
+     query: String!
+     published_only: Boolean
+     limit: Int
+     offset: Int
+ }
+
 type Query {
      users: [User!]! @all(model: "App\\Models\\User")
      user(id: ID! @eq): User @find(model: "App\\Models\\User")
@@ -1322,6 +1426,16 @@ type Query {
     homepageBlocksByType(type: String!): [HomePageBlock!]! @field(resolver: "App\\GraphQL\\Queries\\HomepageBlocksByTypeQuery")
     homepageBlocksBySection(section: String!): [HomePageBlock!]! @field(resolver: "App\\GraphQL\\Queries\\HomepageBlocksBySectionQuery")
     homepageBlocksPaginated(page: Int, per_page: Int, filters: HomePageBlocksFiltersInput): HomePageBlocksPaginatedResult! @field(resolver: "App\\GraphQL\\Queries\\HomepageBlocksPaginatedQuery")
+    
+    # Pages queries
+    pages: [Page!]! @all(model: "App\\Models\\Page")
+    page(id: ID! @eq): Page @find(model: "App\\Models\\Page")
+    pageBySlug(slug: String! @eq): Page @find(model: "App\\Models\\Page")
+    publishedPages: [Page!]! @field(resolver: "App\\GraphQL\\Queries\\PublishedPagesQuery")
+    publishedPageBySlug(slug: String! @eq): Page @field(resolver: "App\\GraphQL\\Queries\\PublishedPageBySlugQuery")
+    pagesPaginated(page: Int, per_page: Int, filters: PageFiltersInput): PagePaginatedResult! @field(resolver: "App\\GraphQL\\Queries\\PagesPaginatedQuery")
+    pagesSearch(input: PageSearchInput!): PageSearchResult! @field(resolver: "App\\GraphQL\\Queries\\PagesSearchQuery")
+    pagesWithFilters(filters: PageFiltersInput, limit: Int, offset: Int): [Page!]! @field(resolver: "App\\GraphQL\\Queries\\PagesWithFiltersQuery")
  }
 
  type Mutation {
@@ -1410,4 +1524,12 @@ type Query {
     markAllNotificationsAsRead(input: MarkAllNotificationsAsReadInput! @spread): Boolean! @field(resolver: "App\\GraphQL\\Mutations\\MarkAllNotificationsAsReadMutation")
     deleteNotification(id: ID!): Notification @delete(model: "App\\Models\\Notification")
     clearAllNotifications(user_id: ID!): Boolean! @field(resolver: "App\\GraphQL\\Mutations\\ClearAllNotificationsMutation")
+    
+    # Pages mutations
+    createPage(input: PageInput! @spread): Page @field(resolver: "App\\GraphQL\\Mutations\\CreatePageMutation")
+    updatePage(id: ID!, input: UpdatePageInput! @spread): Page @field(resolver: "App\\GraphQL\\Mutations\\UpdatePageMutation")
+    deletePage(id: ID!): Page @delete(model: "App\\Models\\Page")
+    publishPage(id: ID!): Page @field(resolver: "App\\GraphQL\\Mutations\\PublishPageMutation")
+    unpublishPage(id: ID!): Page @field(resolver: "App\\GraphQL\\Mutations\\UnpublishPageMutation")
+    duplicatePage(id: ID!): Page @field(resolver: "App\\GraphQL\\Mutations\\DuplicatePageMutation")
  }

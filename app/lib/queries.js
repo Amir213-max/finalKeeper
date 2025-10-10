@@ -329,6 +329,9 @@ query getproduct ($id: String!) {
     id
     name
     sku
+    productBadges{
+      label
+    }
     description_ar
     description_en
     created_at
@@ -675,73 +678,44 @@ export const UNREAD_NOTIFICATIONS_QUERY = gql`
 
 
 
-// query GetHomePageBlocks {
-//   activeHomePageBlocks {
-//     id
-//     type
-//     title
-    
-    // content{
-    //   width
-    //   header
-    //   height
-    //   muted
-    //   autoplay
-    //   show_controls
-    //   show_prices
-    //   slides{
-    //     image
-    //     text1
-    //     text2
-    //     btn_link
-    //     btn_text
-    //   }
-    //   image
-    //   text
-    //   btn_link
-    //   btn_text
-    //   header
-    //   products{
-    //     product_id
-    //     display_order
-    //     product{
-    //       id
-    //       sku
-    //       are_shoes
-    //       list_price_amount
-    //       list_price_currency
-    //       video
-    //       video_url
-    //       video_thumbnail
-    //       video_thumbnail_url
-    //       categories
-    //       name
-    //       brand{
-    //         name
-    //       }
-    //       brand_name
-    //       brand_logo_url
-    //       productBadges{
-    //         label
-    //       }
-    //       images
-          
-    //     }
-    //   }
-    // }
-//     settings{
-//       autoplay
-//       show_arrows
-//       show_dots
-//     }
-//     is_active
-//     sort_order
-//     section
-//     display_limit
-//     background_color
-//     text_color
-//     css_class
-//     created_at
-//     updated_at
-//   }
-// }
+export const Root_CATEGORIES = gql`
+  query {
+    rootCategories {
+      id
+      name
+      parent {
+        id
+        name
+      }
+      subCategories {
+        id
+        name
+      }
+    }
+  }
+`;
+
+
+
+export const FILTER_PRODUCTS_BY_BRAND = gql`
+  query filterProductsByBrand($filters: ProductFiltersInput) {
+    products(filters: $filters) {
+      id
+      name
+      sku
+      brand {
+        id
+        name
+      }
+      images
+      price_range_exact_amount
+      list_price_amount
+      productAttributeValues {
+        key
+        attribute {
+          label
+        }
+      }
+    }
+  }
+`;

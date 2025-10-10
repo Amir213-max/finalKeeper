@@ -91,7 +91,7 @@ export default function HomePageBlocks() {
               <Splide
                 options={{
                   type: "loop",
-                  perPage: 1,
+                  perPage: 3,
                   autoplay: true,
                   pauseOnHover: true,
                   arrows: true,
@@ -128,38 +128,57 @@ export default function HomePageBlocks() {
               </Splide>
             )}
 
-            {/* 🟢 IMAGES */}
-            {block.type === "images" && block.content?.images?.length > 0 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {block.content.images.map((img, idx) => (
-                  <motion.div
-                    key={idx}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.6, delay: idx * 0.1 }}
-                    className="relative rounded-lg overflow-hidden shadow-md hover:shadow-xl transition"
-                  >
-                    <Image
-                      src={getImageUrl(img.image)}
-                      alt={img.title || ""}
-                      width={1200}
-                      height={600}
-                      className="w-full h-auto object-contain"
-                      unoptimized
-                    />
-                    {img.title && (
-                      <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                        <p className="text-white text-lg font-semibold">{img.title}</p>
-                      </div>
-                    )}
-                  </motion.div>
-                ))}
-              </div>
-            )}
+{block.type === "images" && block.content?.images?.length > 0 && (
+  <Splide
+    options={{
+      perPage: 4,       // عدد الصور في الشاشة الكبيرة
+      perMove: 1,
+      gap: '1rem',
+      rewind: true,
+      breakpoints: {
+        1024: { perPage: 3 },
+        768: { perPage: 2 },
+        640: { perPage: 1 },
+      },
+      pagination: false,
+      arrows: true,
+      drag: 'free',
+    }}
+    className="my-6"
+  >
+    {block.content.images.map((img, idx) => (
+      <SplideSlide key={idx}>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: idx * 0.1 }}
+          className="relative rounded-lg overflow-hidden shadow-md hover:shadow-xl transition h-40 md:h-48"
+        >
+          <Image
+            src={getImageUrl(img.image)}
+            alt={img.title || ""}
+            width={400}   // حجم أصغر
+            height={200}
+            className="w-full h-full object-contain"
+            unoptimized
+          />
+          {img.title && (
+            <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+              <p className="text-white text-sm md:text-base font-semibold">{img.title}</p>
+            </div>
+          )}
+        </motion.div>
+      </SplideSlide>
+    ))}
+  </Splide>
+)}
+
+
 {block.type === "banners" && block.content?.banners?.length > 0 && (
   <div className="flex justify-center flex-col sm:flex-row gap-4 flex-wrap px-1 md:px-2 lg:px-1">
     {block.content.banners.map((banner, idx) => {
       const isFirstBanner = idx === 0; // أول بانر في المصفوفة
+      const bannerCount = block.content.banners.length; // عدد البانرات
 
       return (
         <motion.div
@@ -167,15 +186,16 @@ export default function HomePageBlocks() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: idx * 0.1 }}
-          className={`relative flex justify-center w-full
-            ${isFirstBanner ? "h-[60vh] sm:h-[60vh] md:h-[70vh] lg:h-[80vh]" : "h-[30vh] sm:h-[40vh] md:h-[55vh] lg:h-[60vh]"}
+          className={`relative overflow-hidden
+            ${bannerCount === 2 ? "w-full sm:w-[49%]" : "w-full"}
+            h-[40vh] sm:h-[40vh] md:h-[40vh] lg:h-[60vh]
           `}
         >
           <Image
             src={getImageUrl(banner.image)}
             alt={banner.title || ""}
             fill
-            className={isFirstBanner ? "object-fit-fill" : "object-contain"}
+            className={"object-contain-cover object-center"}
             unoptimized
             priority={isFirstBanner}
           />
@@ -250,13 +270,14 @@ export default function HomePageBlocks() {
 
             {/* 🟡 PRODUCTS */}
             {block.type === "products" && productsMap[block.id]?.length > 0 && (
-              <div className="px-4 md:px-8 lg:px-12">
-                <Splide
+              <div className="px-4 md:px-8 overflow-hidden lg:px-12">
+                <Splide 
                   key={lang}
                   options={{
                     type: "loop",
                     perPage: block.content?.per_row || 6,
                     gap: "1rem",
+                
                     autoplay: false,
                     pauseOnHover: true,
                     arrows: true,
@@ -276,14 +297,14 @@ export default function HomePageBlocks() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5, delay: idx * 0.1 }}
-                        className="h-full"
+                        className="h-full overflow-hidden"
                       >
                         <Link
                           href={`/product/${product.sku}`}
                           className="block bg-[#111] hover:bg-[#2b2a2a] rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 h-full"
                         >
                           {/* صورة المنتج */}
-                          <div className="relative flex items-center justify-center aspect-[1.3/1.5]">
+                          <div className="relative flex items-center justify-center overflow-hidden aspect-[1.3/1.5]">
                             {product.images?.[0] ? (
                               <Image
                                 src={
@@ -299,9 +320,21 @@ export default function HomePageBlocks() {
                             ) : (
                               <div className="text-gray-500 text-sm">No Image</div>
                             )}
+                              {product.productBadges?.length > 0 && (
+    <div className="absolute top-3 left-[-35px] rotate-[-45deg] z-10">
+      {product.productBadges.map((badge, index) => (
+        <span
+          key={index}
+          className="bg-red-500 text-white text-xs font-bold px-8 py-1 rounded-sm shadow-md"
+        >
+          {badge.label}
+        </span>
+      ))}
+    </div>
+  )}
 
-                            {/* بادج NEW */}
-                            {(() => {
+                            
+                            {/* {(() => {
                               const now = new Date();
                               const productDate = new Date(product.created_at);
                               const diffTime = now - productDate;
@@ -311,18 +344,23 @@ export default function HomePageBlocks() {
                                   NEW
                                 </span>
                               ) : null;
-                            })()}
+                            })()} */}
                           </div>
 
                           {/* بيانات المنتج */}
-                          <div className="p-4 text-center flex flex-col justify-between">
+                          <div className="p-4 text-center overflow-hidden flex flex-col justify-between">
                             {product.brand?.name && (
                               <p className="text-gray-300 text-sm mb-1">{product.brand.name}</p>
                             )}
+
+
+
+
+                            
                             <h3 className="text-white text-sm sm:text-base font-medium line-clamp-2 mb-2">
                               {product.name}
                             </h3>
-                            <p className="text-white font-bold text-lg">
+                            <p className="text-white font-bold text-lg">  
                               SAR {product.list_price_amount?.toFixed(2)}
                             </p>
                           </div>

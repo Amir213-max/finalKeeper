@@ -113,20 +113,8 @@ export default function GoalKeeperClientPage({ products, brands, attributeValues
             {selectedCategoryName || t("Goalkeeper Gloves")}
           </h1>
 
-          {/* Sidebar للشاشات الصغيرة تحت العنوان */}
-          <div className="block lg:hidden bg-black p-2 mb-4 rounded">
-            <Sidebar
-              categories={categoriesWithProducts}
-              onSelectCategory={(catId) => {
-                if (catId === selectedCategoryId) {
-                  setSelectedCategoryId(null);
-                  setSelectedCategoryName(null);
-                } else {
-                  setSelectedCategoryId(catId);
-                }
-              }}
-            />
-          </div>
+          
+         
 
           {/* Brands Slider */}
           <BrandsSlider

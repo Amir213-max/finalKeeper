@@ -12,14 +12,8 @@ import { GET_CATEGORIES_QUERY, GET_WISHLIST_ITEMS } from "../lib/queries";
 import toast from "react-hot-toast";
 import { useAuth } from "../contexts/AuthContext";
 import { ADD_TO_WISHLIST } from "../lib/mutations";
-import { Splide, SplideSlide } from "@splidejs/react-splide";
-import "@splidejs/react-splide/css";
-import clsx from "clsx";
 import Sidebar from "../Componants/sidebar";
 
-
-
-// Main page component
 export default function FootballClientPage({ products, brands, attributeValues }) {
   const { user } = useAuth();
 
@@ -29,6 +23,8 @@ export default function FootballClientPage({ products, brands, attributeValues }
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [selectedCategoryName, setSelectedCategoryName] = useState(null);
   const [filteredProducts, setFilteredProducts] = useState(products);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // للتحكم في الـ Sidebar للـ mobile
+
 
   const [wishlistIds, setWishlistIds] = useState([]);
   const wishlistId = user?.defaultWishlist?.id || user?.wishlists?.[0]?.id; 
@@ -54,31 +50,23 @@ export default function FootballClientPage({ products, brands, attributeValues }
     }
   }, [wishlistId]);
 
-  // Handle Add to Wishlist
+  // Add to Wishlist
   async function handleAddToWishlist(productId) {
     if (!user) {
       toast.error("❌ You must be logged in to add to wishlist");
       return;
     }
-
     if (!wishlistId) {
       toast.error("❌ Your wishlist ID is missing. Please reload or contact support.");
       return;
     }
-
     if (wishlistIds.includes(String(productId))) {
       toast("⚠️ This product is already in your wishlist");
       return;
     }
 
     try {
-      const variables = {
-        input: {
-          wishlist_id: wishlistId,
-          product_id: productId,
-        },
-      };
-
+      const variables = { input: { wishlist_id: wishlistId, product_id: productId } };
       const response = await graphqlClient.request(ADD_TO_WISHLIST, variables);
 
       if (response?.addToWishlist?.success) {
@@ -136,8 +124,8 @@ export default function FootballClientPage({ products, brands, attributeValues }
     setCurrentPage(1);
   }, [products, selectedBrand, selectedAttributes, selectedCategoryId]);
 
-  // Filter categories that have products
-  const categoriesWithProducts = useMemo(() => {
+  // Categories that have products
+   const categoriesWithProducts = useMemo(() => {
     return categories.filter((cat) =>
       products.some((product) =>
         (product.rootCategories || []).some((pCat) => pCat.id === cat.id)
@@ -151,42 +139,45 @@ export default function FootballClientPage({ products, brands, attributeValues }
   const currentProducts = filteredProducts.slice(indexOfFirst, indexOfLast);
   const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
 
+  // Handle category selection from Sidebar
+  const handleCategorySelect = (catId) => {
+    if (catId === selectedCategoryId) {
+      setSelectedCategoryId(null);
+      setSelectedCategoryName(null);
+    } else {
+      setSelectedCategoryId(catId);
+      const cat = categories.find((c) => c.id === catId);
+      setSelectedCategoryName(cat?.name || null);
+    }
+  };
+  
+
   return (
     <div className="bg-[#373e3e]">
-        <div className="block lg:hidden bg-black px-2 py-2 sticky top-0 z-20">
-        <Sidebar
-          categories={categoriesWithProducts}
-          onSelectCategory={(catId) => {
-            if (catId === selectedCategoryId) {
-              setSelectedCategoryId(null);
-              setSelectedCategoryName(null);
-            } else {
-              setSelectedCategoryId(catId);
-            }
-          }}
-        />
+      {/* Sidebar for mobile */}
+      <div className="block lg:hidden bg-black px-2 py-2 sticky top-0 z-20">
+      <Sidebar
+ // إذا عندك Drawer
+ isOpen={sidebarOpen}
+  setIsOpen={setSidebarOpen}
+  categories={categoriesWithProducts}
+  onSelectCategory={handleCategorySelect}
+/>
       </div>
 
       <div className="grid pt-1 grid-cols-1 lg:grid-cols-5">
-        {/* ✅ Sidebar في الجنب للشاشات الكبيرة */}
+        {/* Sidebar for desktop */}
         <div className="hidden lg:block lg:col-span-1 bg-black h-auto">
           <Sidebar
             categories={categoriesWithProducts}
-            onSelectCategory={(catId) => {
-              if (catId === selectedCategoryId) {
-                setSelectedCategoryId(null);
-                setSelectedCategoryName(null);
-              } else {
-                setSelectedCategoryId(catId);
-              }
-            }}
+            onSelectCategory={handleCategorySelect}
           />
         </div>
-        
+
         {/* Products Area */}
         <div className="md:col-span-4 p-4 bg-white">
           <h1 className="text-4xl text-[#1f2323] p-2">
-            {selectedCategoryName ? selectedCategoryName : t("Football Shoes")}
+            {selectedCategoryName || t("Football Shoes")}
           </h1>
 
           <BrandsSlider
@@ -211,7 +202,6 @@ export default function FootballClientPage({ products, brands, attributeValues }
                 key={product.sku}
                 className="bg-gradient-to-br from-white to-neutral-200 rounded-xl shadow-md overflow-hidden flex flex-col relative transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
               >
-                {/* Heart Button */}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -228,10 +218,8 @@ export default function FootballClientPage({ products, brands, attributeValues }
                   />
                 </button>
 
-                {/* Product Slider */}
                 <ProductSlider images={product.images} productName={product.name} />
 
-                {/* Product Details */}
                 <Link
                   href={`/product/${encodeURIComponent(product.sku)}`}
                   className="p-4 flex flex-col flex-grow justify-between"
@@ -251,11 +239,9 @@ export default function FootballClientPage({ products, brands, attributeValues }
                   <div className="text-center">
                     <div className="line-through text-gray-500 text-sm">
                       SAR {(product.list_price_amount * 4.6).toFixed(2)}
-
                     </div>
                     <span className="text-lg font-bold text-neutral-900">
-                    SAR {(product.price_range_exact_amount  * 4.6).toFixed(2)}
-
+                      SAR {(product.price_range_exact_amount * 4.6).toFixed(2)}
                     </span>
                   </div>
                 </Link>
@@ -289,6 +275,7 @@ export default function FootballClientPage({ products, brands, attributeValues }
               ))}
 
               <button
+                onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
                 disabled={currentPage === totalPages}
                 className="px-3 sm:px-4 py-2 cursor-pointer rounded-lg bg-gray-200 text-gray-700 disabled:opacity-50 text-sm sm:text-base"
               >
