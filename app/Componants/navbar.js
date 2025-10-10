@@ -6,7 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import CartSidebar from './CartSidebar';
 import SearchComponent from './SearchComponant';
-import Sidebar from './Sidebar';
+import Sidebar from './sidebar';
 import NavbarNotifications from './NotificationsBell';
 
 export default function NavbarWithLinks({ onSelectCategory }) {
